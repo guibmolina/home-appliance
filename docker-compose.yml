@@ -1,0 +1,55 @@
+version: "3.7"
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: home-appliance-nginx
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./apps/:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - homeAppliance
+
+  home-appliance-api-app:
+    build:
+      args:
+        user: guilherme
+        uid: 1000
+      context: ./apps/home-appliance-api
+      dockerfile: Dockerfile
+    image: home-appliance-api
+    container_name: home-appliance-api-app
+    restart: unless-stopped
+    working_dir: /var/www/home-appliance-api
+    volumes:
+      - ./apps/home-appliance-api:/var/www/home-appliance-api
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=home-appliance-db"
+      - "DB_DATABASE=homeAppliance"
+      - "DB_USERNAME=root"
+      - "DB_PASSWORD=root"
+    depends_on:
+      - db
+    networks: 
+      - homeAppliance
+
+  db:
+    image: mariadb
+    container_name: home-appliance-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+
+    networks:
+      - homeAppliance
+
+networks:
+  homeAppliance:
+    driver: bridge
