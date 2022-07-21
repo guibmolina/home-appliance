@@ -1,0 +1,3 @@
+[submodule "apps/home-appliance-api"]
+	path = apps/home-appliance-api
+	url = https://github.com/guibmolina/home-appliance-api.git
